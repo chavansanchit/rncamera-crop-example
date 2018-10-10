@@ -1,0 +1,4 @@
+#Wed Oct 03 11:29:15 CDT 2018
+base.0=/Users/sachavan/Projects/rncamera-example-master/android/app/build/intermediates/transforms/dexMerger/debug/0
+path.0=classes.dex
+renamed.0=classes.dex
