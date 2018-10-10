@@ -1,0 +1,246 @@
+import React, {Component} from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, Slider } from 'react-native';
+import { RNCamera } from 'react-native-camera';
+
+
+const flashModeOrder = {
+  off: 'on',
+  on: 'auto',
+  auto: 'torch',
+  torch: 'off',
+};
+
+export default class CameraScreen extends Component {
+  constructor(props) {
+    super();
+    let { width } = Dimensions.get('window');
+    this.maskLength = (width*85)/100; // 90% ของขนาดหน้าจอตามยาว
+  }
+  
+  state = {
+    flash: 'off',
+    zoom: 0,
+    autoFocus: 'on',
+    depth: 0,
+    type: 'back',
+    whiteBalance: 'auto',
+    ratio: '16:9',
+    ratios: [],
+    photoId: 1,
+    showGallery: false,
+    photos: [],
+  };
+
+  getRatios = async function() {
+    const ratios = await this.camera.getSupportedRatios();
+    return ratios;
+  };
+
+  toggleView() {
+    this.setState({
+      showGallery: !this.state.showGallery,
+    });
+  }
+
+  toggleFacing() {
+    this.setState({
+      type: this.state.type === 'back' ? 'front' : 'back',
+    });
+  }
+
+  toggleFlash() {
+    this.setState({
+      flash: flashModeOrder[this.state.flash],
+    });
+  }
+
+  setRatio(ratio) {
+    this.setState({
+      ratio,
+    });
+  }
+
+
+  toggleFocus() {
+    this.setState({
+      autoFocus: this.state.autoFocus === 'on' ? 'off' : 'on',
+    });
+  }
+
+  zoomOut() {
+    this.setState({
+      zoom: this.state.zoom - 0.1 < 0 ? 0 : this.state.zoom - 0.1,
+    });
+  }
+
+  zoomIn() {
+    this.setState({
+      zoom: this.state.zoom + 0.1 > 1 ? 1 : this.state.zoom + 0.1,
+    });
+  }
+
+
+  takePicture = async function() {
+    if (this.camera) {
+      this.camera.takePictureAsync().then(data => {
+        console.log('data: ', data);
+      });
+    }
+  };
+
+  renderCamera() {
+    return (
+      <RNCamera
+        ref={ref => {
+          this.camera = ref;
+        }}
+        style={{
+          flex: 1,
+        }}
+        type={this.state.type}
+        flashMode={this.state.flash}
+        autoFocus={this.state.autoFocus}
+        zoom={this.state.zoom}
+        whiteBalance={this.state.whiteBalance}
+        ratio={this.state.ratio}
+        permissionDialogTitle={'Permission to use camera'}
+        permissionDialogMessage={'We need your permission to use your camera phone'}
+      >
+       <View style={styles.rectangleContainer}>
+          <View style={styles.rectangle}/>
+          <View style={styles.snap}>
+          <Text>PLEASE PLACE IMAGE IN THE FRAME</Text>
+        </View>
+        <View style={styles.snapText}>
+          <TouchableOpacity
+            style={[styles.flipButton, styles.picButton, { flex: 0.3, alignSelf: 'flex-end' }]}
+            onPress={this.takePicture.bind(this)}
+          >
+            <Text style={styles.flipText}> SNAP </Text>
+          </TouchableOpacity>
+</View>
+        </View>
+       
+          <TouchableOpacity
+            style={[styles.flipButton, { flex: 0.1, alignSelf: 'flex-end' }]}
+            onPress={this.zoomIn.bind(this)}
+          >
+            <Text style={styles.flipText}> + </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.flipButton, { flex: 0.1, alignSelf: 'flex-end' }]}
+            onPress={this.zoomOut.bind(this)}
+          >
+            <Text style={styles.flipText}> - </Text>
+          </TouchableOpacity>
+      
+      </RNCamera>
+    );
+  }
+
+  render() {
+    return <View style={styles.container}>{this.renderCamera()}</View>;
+  }
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingTop: 10,
+    backgroundColor: '#000',
+  },
+  navigation: {
+    flex: 1,
+  },
+  gallery: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  snap:{
+alignItems:"center"
+  },
+  snapText:{
+    alignItems:"center",
+    fontSize:15,
+  },
+  flipButton: {
+    flex: 0.3,
+    height: 40,
+    marginHorizontal: 2,
+    marginBottom: 10,
+    marginTop: 20,
+    borderRadius: 8,
+    borderColor: 'white',
+    borderWidth: 1,
+    padding: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  flipText: {
+    color: 'white',
+    fontSize: 15,
+  },
+  item: {
+    margin: 4,
+    backgroundColor: 'indianred',
+    height: 35,
+    width: 80,
+    borderRadius: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  picButton: {
+    backgroundColor: 'darkseagreen',
+  },
+  galleryButton: {
+    backgroundColor: 'indianred',
+  },
+  facesContainer: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    left: 0,
+    top: 0,
+  },
+  face: {
+    padding: 10,
+    borderWidth: 2,
+    borderRadius: 2,
+    position: 'absolute',
+    borderColor: '#FFD700',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  landmark: {
+   
+    position: 'absolute',
+    backgroundColor: 'red',
+  },
+  faceText: {
+    color: '#FFD700',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    margin: 20,
+    backgroundColor: 'transparent',
+  },
+  row: {
+    flexDirection: 'row',
+  },
+  rectangleContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
+
+  rectangle: {
+    height: 300,
+    width: 300,
+    borderWidth: 2,
+    borderColor: '#00FF00',
+    backgroundColor: 'transparent',
+    marginTop:100
+  },
+  
+});
